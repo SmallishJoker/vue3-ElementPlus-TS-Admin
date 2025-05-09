@@ -1,0 +1,37 @@
+.el-header {
+    position: sticky;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: var(--el-header-height);
+    border-bottom: 1px solid var(--el-border-color);
+    z-index: 3;
+    background-image: radial-gradient(transparent 1px, var(--el-bg-color) 1px);
+    background-size: 4px 4px;
+    backdrop-filter: saturate(50%) blur(4px);
+}
+
+.el-container {
+    min-height: calc(100% - var(--el-header-height));
+
+    .el-aside {
+        height: calc(100vh - var(--el-header-height));
+        position: sticky;
+        top: var(--el-header-height);
+        left: 0;
+        transition: width 0.3s ease-in-out;
+
+        .el-menu {
+            height: 100%;
+        }
+    }
+}
+
+.el-link__inner {
+    font-weight: 400;
+}
+
+:deep(.el-radio-button__inner) {
+    font-weight: 400;
+    color: red;
+}

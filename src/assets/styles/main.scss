@@ -1,0 +1,29 @@
+@use "./reset.scss"as *;
+@use "./resetElement.scss"as *;
+@use 'element-plus/theme-chalk/dark/css-vars.css'as *; // 引入暗黑主题
+@use "./common.scss"as *;
+@use "./custom-theme.scss"as *;
+
+html,
+body {
+    width: 100%;
+    height: 100%;
+}
+
+#app {
+    width: 100%;
+    min-height: 100%;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+    animation: none !important;
+}
+
+.dark::view-transition-old(root) {
+    z-index: 9999;
+}

@@ -1,0 +1,30 @@
+:root {
+    --el-aside-width: 200px;
+    --el-header-height: 60px;
+    --box-shadow-color: rgba(0, 0, 0, 0.1);
+    --primary-text-color: #303133;
+    --white-text-color: #fff;
+    --primary-hover-color: #F5F7FA;
+    --placeholder-color: #C0C4CC;
+    --secondary-text-color: #909399;
+    --regular-text-color: #606266;
+    --el-index-normal: 1;
+    --el-bg-color: #fff;
+    --range-text-color: var(--primary-text-color);
+    --range-bg-color: #F5F7FA;
+    --el-color-primary: #1677ff;
+    --el-button-text-color: var(--primary-text-color);
+}
+
+.dark {
+    --box-shadow-color: rgba(255, 255, 255, 0.1);
+    --primary-text-color: #e5eaf3;
+    --primary-hover-color: var(--primary-text-color);
+    --placeholder-color: var(--primary-text-color);
+    --secondary-text-color: var(--primary-text-color);
+    --regular-text-color: var(--primary-text-color);
+    --el-bg-color: #181818;
+    --white-text-color: #181818;
+    --range-text-color: var(--primary-text-color);
+    --range-bg-color: #181818;
+}

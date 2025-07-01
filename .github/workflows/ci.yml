@@ -1,45 +1,63 @@
-name: CI/CD Pipeline       # 工作流名称
+name: PNPM CI/CD Pipeline
 
-on:                       # 触发条件
+on:
   push:
-    branches: [ main ]    # 监听 main 分支的 push 事件
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
-jobs:                     # 定义任务
-  build-and-deploy:       # 任务 ID（自定义）
-    runs-on: ubuntu-latest # 在 GitHub 提供的 Ubuntu 虚拟机运行
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    # 启用 pnpm 的专用缓存目录
+    defaults:
+      run:
+        shell: bash
 
-    steps:                # 任务步骤
-    # 1. 拉取代码
-    - name: Checkout code
+    steps:
+    # 1. 检出代码
+    - name: Checkout repository
       uses: actions/checkout@v4
 
-    # 2. 设置 Node.js 环境
+    # 2. 安装 pnpm 并配置缓存
+    - name: Setup PNPM
+      uses: pnpm/action-setup@v2
+      with:
+        version: 8        # 指定 pnpm 版本
+        run_install: false
+
+    # 3. 设置 Node.js
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: 20  # 指定 Node 版本
+        node-version: 20
+        cache: 'pnpm'     # 关键：使用 pnpm 专属缓存
 
-    # 3. 安装依赖（利用缓存加速）
-    - name: Install Dependencies
-      run: npm ci         # 比 npm install 更严格，适合 CI
+    # 4. 安装依赖（pnpm 专属命令）
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
       env:
-        CI: true          # 防止某些包执行非必要脚本
+        CI: true
 
-    # 4. 运行代码检查（可选）
-    - name: Run Linter
-      run: npm run lint   # 假设 package.json 中有 "lint": "eslint ."
+    # 5. 代码检查
+    - name: Run linting
+      run: pnpm run lint
 
-    # 5. 运行测试（可选）
-    - name: Run Tests
-      run: npm test
+    # 6. 运行测试
+    - name: Run tests
+      run: pnpm run test
+      env:
+        CI: true
 
-    # 6. 构建生产包
-    - name: Build Project
-      run: npm run build  # 生成静态文件到 build/ 目录
+    # 7. 构建项目
+    - name: Build project
+      run: pnpm run build
+      env:
+        NODE_ENV: production
 
-    # 7. 部署到 GitHub Pages
+    # 8. 部署到 GitHub Pages
     - name: Deploy to GitHub Pages
-      uses: peaceiris/actions-gh-pages@v3 # 第三方部署 Action
+      uses: peaceiris/actions-gh-pages@v3
       with:
-        github_token: ${{ secrets.GITHUB_TOKEN }} # 自动注入的 token
-        publish_dir: ./build              # 构建产物目录
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./dist  # 根据项目实际构建目录修改

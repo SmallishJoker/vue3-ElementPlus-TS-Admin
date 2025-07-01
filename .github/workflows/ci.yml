@@ -8,23 +8,23 @@ on:
 
 jobs:
   build-and-deploy:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04  # 使用更新的 Ubuntu 版本
     defaults:
       run:
         shell: bash
 
     steps:
-    # 1. 检出代码（包含完整历史）
+    # 1. 检出代码
     - name: Checkout repository
       uses: actions/checkout@v4
       with:
-        fetch-depth: 0  # 获取完整历史，解决锁文件兼容问题
+        fetch-depth: 0  # 获取完整历史记录
 
     # 2. 安装指定版本的 pnpm
     - name: Setup PNPM
       uses: pnpm/action-setup@v2
       with:
-        version: 9.15.1  # 必须与本地版本一致
+        version: 8.14.0
         run_install: false
 
     # 3. 设置 Node.js
@@ -34,27 +34,34 @@ jobs:
         node-version: 20
         cache: 'pnpm'
 
-    # 4. 解决锁文件兼容问题
-    - name: Resolve lockfile compatibility
+    # 4. 配置 pnpm 存储路径
+    - name: Configure pnpm store
       run: |
-        # 强制使用当前版本的 pnpm 重新生成锁文件
-        pnpm install --lockfile-only
+        # 手动设置 pnpm store 路径
+        mkdir -p ~/.pnpm-store
+        pnpm config set store-dir ~/.pnpm-store
         
-        # 验证锁文件格式
-        pnpm check-lockfile
-        
-        # 显示锁文件信息（调试用）
-        pnpm config list
+        # 验证配置
+        echo "PNPM store path: $(pnpm store path)"
         echo "PNPM version: $(pnpm --version)"
-        echo "Lockfile version: $(grep 'lockfileVersion' pnpm-lock.yaml || echo 'unknown')"
 
-    # 5. 安装依赖
+    # 5. 安装依赖（带缓存）
+    - name: Cache pnpm dependencies
+      uses: actions/cache@v3
+      id: pnpm-cache
+      with:
+        path: |
+          ~/.pnpm-store
+          node_modules
+        key: ${{ runner.os }}-pnpm-${{ hashFiles('pnpm-lock.yaml') }}
+
+    # 6. 安装依赖
     - name: Install dependencies
       run: pnpm install --frozen-lockfile
       env:
         CI: true
 
-    # 6. 后续步骤保持不变...
+    # 7. 后续步骤
     - name: Run linting
       run: pnpm run lint
 

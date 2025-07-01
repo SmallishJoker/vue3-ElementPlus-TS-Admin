@@ -14,55 +14,60 @@ jobs:
         shell: bash
 
     steps:
-    # 1. 检出代码
+    # 1. 检出代码（包含完整历史）
     - name: Checkout repository
       uses: actions/checkout@v4
-      
-    # 2. 安装 pnpm
+      with:
+        fetch-depth: 0  # 获取完整历史，解决锁文件兼容问题
+
+    # 2. 安装指定版本的 pnpm
     - name: Setup PNPM
       uses: pnpm/action-setup@v2
       with:
-        version: 8
+        version: 9.15.1  # 必须与本地版本一致
         run_install: false
 
     # 3. 设置 Node.js
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: 20
+        node-version: 23
         cache: 'pnpm'
 
-    # 4. 安装依赖（智能处理锁文件）
-    - name: Install dependencies
+    # 4. 解决锁文件兼容问题
+    - name: Resolve lockfile compatibility
       run: |
-        # 检查锁文件是否存在
-        if [ -f "pnpm-lock.yaml" ]; then
-          echo "Lockfile exists. Using frozen lockfile."
-          pnpm install --frozen-lockfile
-        else
-          echo "Lockfile missing. Installing without frozen lockfile."
-          pnpm install
-        fi
+        # 强制使用当前版本的 pnpm 重新生成锁文件
+        pnpm install --lockfile-only
+        
+        # 验证锁文件格式
+        pnpm check-lockfile
+        
+        # 显示锁文件信息（调试用）
+        pnpm config list
+        echo "PNPM version: $(pnpm --version)"
+        echo "Lockfile version: $(grep 'lockfileVersion' pnpm-lock.yaml || echo 'unknown')"
+
+    # 5. 安装依赖
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
       env:
         CI: true
 
-    # 5. 代码检查
+    # 6. 后续步骤保持不变...
     - name: Run linting
       run: pnpm run lint
 
-    # 6. 运行测试
     - name: Run tests
       run: pnpm run test
       env:
         CI: true
 
-    # 7. 构建项目
     - name: Build project
       run: pnpm run build
       env:
         NODE_ENV: production
 
-    # 8. 部署到 GitHub Pages
     - name: Deploy to GitHub Pages
       uses: peaceiris/actions-gh-pages@v3
       with:

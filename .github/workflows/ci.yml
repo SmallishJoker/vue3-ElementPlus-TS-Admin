@@ -37,13 +37,10 @@ jobs:
     # 4. 配置 pnpm 存储路径
     - name: Configure pnpm store
       run: |
-        # 手动设置 pnpm store 路径
         mkdir -p ~/.pnpm-store
-        pnpm config set store-dir ~/.pnpm-store
-        
-        # 验证配置
-        echo "PNPM store path: $(pnpm store path)"
-        echo "PNPM version: $(pnpm --version)"
+        ~/.local/share/pnpm/pnpm config set store-dir ~/.pnpm-store
+        echo "PNPM store path: $(~/.local/share/pnpm/pnpm store path)"
+        echo "PNPM version: $(~/.local/share/pnpm/pnpm --version)"
 
     # 5. 安装依赖（带缓存）
     - name: Cache pnpm dependencies

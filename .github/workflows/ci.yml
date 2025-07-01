@@ -9,7 +9,6 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    # 启用 pnpm 的专用缓存目录
     defaults:
       run:
         shell: bash
@@ -18,12 +17,12 @@ jobs:
     # 1. 检出代码
     - name: Checkout repository
       uses: actions/checkout@v4
-
-    # 2. 安装 pnpm 并配置缓存
+      
+    # 2. 安装 pnpm
     - name: Setup PNPM
       uses: pnpm/action-setup@v2
       with:
-        version: 8        # 指定 pnpm 版本
+        version: 8
         run_install: false
 
     # 3. 设置 Node.js
@@ -31,11 +30,19 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: 20
-        cache: 'pnpm'     # 关键：使用 pnpm 专属缓存
+        cache: 'pnpm'
 
-    # 4. 安装依赖（pnpm 专属命令）
+    # 4. 安装依赖（智能处理锁文件）
     - name: Install dependencies
-      run: pnpm install --frozen-lockfile
+      run: |
+        # 检查锁文件是否存在
+        if [ -f "pnpm-lock.yaml" ]; then
+          echo "Lockfile exists. Using frozen lockfile."
+          pnpm install --frozen-lockfile
+        else
+          echo "Lockfile missing. Installing without frozen lockfile."
+          pnpm install
+        fi
       env:
         CI: true
 
@@ -60,4 +67,4 @@ jobs:
       uses: peaceiris/actions-gh-pages@v3
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./dist  # 根据项目实际构建目录修改
+        publish_dir: ./dist

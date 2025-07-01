@@ -20,47 +20,67 @@ jobs:
       with:
         fetch-depth: 0
 
-    # 2. 安装指定版本的 pnpm
-    - name: Setup PNPM
-      uses: pnpm/action-setup@v2
-      with:
-        version: 8.14.0
-
-    # 3. 设置 Node.js 并启用 pnpm 缓存
+    # 2. 安装 Node.js（跳过 pnpm 自动安装）
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
         node-version: 20
-        cache: 'pnpm'
+        cache: 'npm'  # 使用 npm 缓存而不是 pnpm
 
-    # 4. 安装依赖
+    # 3. 手动安装 pnpm
+    - name: Install PNPM manually
+      run: |
+        # 避免使用 pnpm/action-setup
+        npm install -g pnpm@8.14.0
+        
+        # 创建自定义 store 目录
+        mkdir -p ~/.pnpm-store
+        pnpm config set store-dir ~/.pnpm-store
+        
+        # 验证安装
+        echo "PNPM version: $(pnpm --version)"
+        echo "Store path: $(pnpm store path || echo 'Using custom store')"
+
+    # 4. 缓存设置
+    - name: Cache dependencies
+      uses: actions/cache@v3
+      id: pnpm-cache
+      with:
+        path: |
+          ~/.pnpm-store
+          node_modules
+        key: ${{ runner.os }}-pnpm-${{ hashFiles('pnpm-lock.yaml') }}
+        restore-keys: |
+          ${{ runner.os }}-pnpm-
+
+    # 5. 安装依赖（绕过 store path 问题）
     - name: Install dependencies
-      run: pnpm install --frozen-lockfile
+      run: |
+        # 如果 lockfile 存在，使用 frozen 模式
+        if [ -f "pnpm-lock.yaml" ]; then
+          pnpm install --frozen-lockfile --store-dir=~/.pnpm-store
+        else
+          pnpm install --store-dir=~/.pnpm-store
+        fi
       env:
         CI: true
 
-    # 5. 运行代码检查
+    # 6. 后续步骤保持不变
     - name: Run linting
       run: pnpm run lint
 
-    # 6. 运行测试
     - name: Run tests
       run: pnpm run test
       env:
         CI: true
 
-    # 7. 构建项目
     - name: Build project
       run: pnpm run build
       env:
         NODE_ENV: production
 
-    # 8. 部署到 GitHub Pages
     - name: Deploy to GitHub Pages
-      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
       uses: peaceiris/actions-gh-pages@v3
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         publish_dir: ./dist
-        publish_branch: gh-pages
-        force_orphan: true

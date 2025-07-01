@@ -35,7 +35,7 @@ watch([route, isCollapse, () => layoutStore.windowWidth], ([newRoute, newIsColla
     if (newWidth !== 0 && newWidth !== oldWidth) {
         resizeHandler()
     }
-}, { immediate: true })
+})
 
 const router = useRouter()
 

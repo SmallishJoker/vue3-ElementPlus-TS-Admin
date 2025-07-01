@@ -5,7 +5,8 @@ export const dashboardRoutes = [
         redirect: '/dashboard/analytics',
         meta: {
             title: 'Dashboard',
-            activeMenu: 'Analytics'
+            activeMenu: 'Analytics',
+            requiresAuth: true
         },
         children: [
             {
@@ -14,7 +15,8 @@ export const dashboardRoutes = [
                 component: () => import('@/views/dashboard/Analytics.vue'),
                 meta: {
                     title: '分析页',
-                    activeMenu: 'Analytics'
+                    activeMenu: 'Analytics',
+                    requiresAuth: true
                 }
             },
             {
@@ -23,7 +25,8 @@ export const dashboardRoutes = [
                 component: () => import('@/views/dashboard/Monitor.vue'),
                 meta: {
                     title: '监控页',
-                    activeMenu: 'Monitor'
+                    activeMenu: 'Monitor',
+                    requiresAuth: true
                 }
             },
             {
@@ -32,7 +35,8 @@ export const dashboardRoutes = [
                 component: () => import('@/views/dashboard/Workplace.vue'),
                 meta: {
                     title: '工作台',
-                    activeMenu: 'Workplace'
+                    activeMenu: 'Workplace',
+                    requiresAuth: true
                 }
             }
         ]

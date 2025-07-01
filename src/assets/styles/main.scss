@@ -27,3 +27,7 @@ body {
 .dark::view-transition-old(root) {
     z-index: 9999;
 }
+
+#nprogress .bar {
+    background: linear-gradient(120deg, #f6d365 0%, #fda085 100%) !important;
+}

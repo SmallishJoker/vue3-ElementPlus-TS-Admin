@@ -35,7 +35,7 @@
                                 color="linear-gradient(to left, #2af598 0%, #009efd 100%)" />
                         </div>
                     </template>
-                    <div v-else :ref="setChartRefs" class="chart-container"></div>
+                    <CustomChart v-if="!!item.option" :option="item.option" :request-option="requestOption"/>
                 </div>
             </div>
             <el-divider />
@@ -65,14 +65,127 @@
 
 <script setup lang="ts">
 import { Warning, CaretTop, CaretBottom } from '@element-plus/icons-vue';
-import { onMounted, ref, type ComponentPublicInstance, getCurrentInstance } from 'vue';
-import * as echarts from 'echarts';
-import { useLayoutStore } from '@/stores/useLayoutStore';
-import { watch } from 'vue';
-const instance = getCurrentInstance();
+import { ref } from 'vue';
+import CustomChart from '@/components/chart/CustomChart.vue';
+import type { EChartsOption } from 'echarts'
 
-const layoutStore = useLayoutStore()
+const requestOption = ref({
+    url: 'http://123.1.com'
+})
 
+const option1 = ref<EChartsOption>({
+    color: ['#FFBF00'],
+    tooltip: {
+        trigger: 'axis',
+    },
+    xAxis: {
+        type: 'category',
+        data: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'],
+        show: false,
+        boundaryGap: false,
+    },
+    yAxis: {
+        type: 'value',
+        show: false
+    },
+    grid: {
+        top: 0,
+        right: 0,
+        bottom: 0,
+        left: 0
+    },
+    series: [{
+        type: 'line',
+        stack: 'Total',
+        smooth: true,
+        lineStyle: {
+            width: 0
+        },
+        showSymbol: false,
+        label: {
+            show: false,
+            position: 'top'
+        },
+        areaStyle: {
+            opacity: 0.7,
+            color: {
+                type: 'linear',
+                x: 0,
+                y: 0,
+                x2: 0,
+                y2: 1,
+                colorStops: [
+                    {
+                        offset: 1,
+                        color: 'rgba(250, 112, 154, 0.5)'
+                    },
+                    {
+                        offset: 0,
+                        color: 'rgba(254, 225, 64, 0.8)'
+                    }
+                ]
+            }
+        },
+        emphasis: {
+            focus: 'series'
+        },
+        data: []
+    }]
+})
+
+const option2 = ref<EChartsOption>({
+    color: ['#409EFF'],
+    tooltip: {
+        trigger: 'axis',
+    },
+    xAxis: {
+        type: 'category',
+        data: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'],
+        show: false,
+        boundaryGap: true,
+    },
+    yAxis: {
+        type: 'value',
+        show: false
+    },
+    grid: {
+        top: 0,
+        right: 0,
+        bottom: 0,
+        left: 0
+    },
+    series: [{
+        type: 'bar',
+        stack: 'Total',
+        label: {
+            show: false,
+            position: 'top'
+        },
+        itemStyle: {
+            color: {
+                type: 'linear',
+                x: 0,
+                y: 0,
+                x2: 0,
+                y2: 1,
+                colorStops: [
+                    {
+                        offset: 0,
+                        color: '#66a6ff'
+                    },
+                    {
+                        offset: 1,
+                        color: '#89f7fe'
+                    }
+                ]
+            }
+        },
+        emphasis: {
+            focus: 'series'
+        },
+        data: []
+    }]
+})
 const cardList = [
     {
         title: '总销售额',
@@ -81,6 +194,7 @@ const cardList = [
         subtitle: '周同比 12%',
         footer: '日销售额',
         footerValue: '¥ 12,460',
+        option1: null
     },
     {
         title: '访问量',
@@ -89,6 +203,7 @@ const cardList = [
         subtitle: '8751',
         footer: '日访问量',
         footerValue: '1234',
+        option: option1.value
     },
     {
         title: '支付笔数',
@@ -97,6 +212,7 @@ const cardList = [
         subtitle: '6560',
         footer: '转化率',
         footerValue: '12%',
+        option: option2.value
     },
     {
         title: '运营活动效果',
@@ -106,110 +222,9 @@ const cardList = [
         footer: '周同比 12%',
         footerValue: '12%',
         footerValue2: '12%',
+        option: null
     },
 ]
-
-const chartRefs = ref<HTMLElement[]>([]);
-
-const setChartRefs = (el: Element | ComponentPublicInstance | null) => {
-    if (el) {
-        chartRefs.value.push(el as HTMLElement);
-    }
-};
-
-watch([() => layoutStore.windowWidth, () => layoutStore.isCollapse], ([newWidth, newIsCollapse], [oldWidth, oldIsCollapse]) => {
-    if (newWidth !== oldWidth || newIsCollapse !== oldIsCollapse) {
-        resizeHandler()
-    }
-})
-
-const resizeHandler = instance?.appContext.config.globalProperties.$deBounce(() => {
-    myCharts.value.forEach(chart => {
-        chart.resize({
-            animation: {
-                duration: 200,
-                easing: 'linear'
-            }
-        });
-    });
-}, 300);
-
-const myCharts = ref<echarts.ECharts[]>([]);
-
-onMounted(() => {
-    // 初始化所有图表
-    Object.entries(chartRefs.value).forEach(([id, el]) => {
-        const charts = echarts.init(el as HTMLElement);
-        myCharts.value.push(charts)
-        // 根据不同的 id 配置不同的图表选项
-        const option = {
-            color: id === '0' ? ['#FFBF00'] : ['#409EFF'],
-            tooltip: {
-                trigger: 'axis',
-            },
-            xAxis: {
-                type: 'category',
-                data: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'],
-                show: false,
-                boundaryGap: id === '0' ? false : true
-            },
-            yAxis: {
-                type: 'value',
-                show: false
-            },
-            grid: {
-                top: 0,
-                right: 0,
-                bottom: 0,
-                left: 0
-            },
-            series: [
-                {
-                    type: id === '0' ? 'line' : 'bar',
-                    stack: 'Total',
-                    smooth: true,
-                    lineStyle: {
-                        width: 0
-                    },
-                    showSymbol: false,
-                    label: {
-                        show: false,
-                        position: 'top'
-                    },
-                    areaStyle: {
-                        opacity: 0.7,
-                        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                            {
-                                offset: 1,
-                                color: 'rgba(250, 112, 154, 0.5)'
-                            },
-                            {
-                                offset: 0,
-                                color: 'rgba(254, 225, 64, 0.8)'
-                            }
-                        ])
-                    },
-                    color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                        {
-                            offset: 0,
-                            color: '#66a6ff'
-                        },
-                        {
-                            offset: 1,
-                            color: '#89f7fe'
-                        }
-                    ]),
-                    emphasis: {
-                        focus: 'series'
-                    },
-                    data: [9, 3, 7, 9, 4, 7, 5, 8, 1, 10]
-                }
-            ]
-        };
-
-        charts.setOption(option);
-    });
-});
 </script>
 
 <style scoped lang="scss">

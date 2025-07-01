@@ -29,9 +29,11 @@
             <div class="statistics-card-chart-container">
                 <div class="statistics-card-chart-item">
                     <div class="statistics-card-chart-item-title">
-                        <span>搜索用户数</span>
+                        <span>销售额</span>
                     </div>
-                    <div class="chart-container" ref="chartContainer"></div>
+                    <div class="chart-wrap">
+                        <CustomChart :option="option"/>
+                    </div>
                 </div>
             </div>
         </el-card>
@@ -40,73 +42,51 @@
 
 <script setup lang="ts">
 import { MoreFilled } from '@element-plus/icons-vue';
-import { ref, onMounted, watch, getCurrentInstance } from 'vue';
-import * as echarts from 'echarts';
-import { useLayoutStore } from '@/stores/useLayoutStore';
+import { ref } from 'vue';
+import CustomChart from '../chart/CustomChart.vue';
 
 const radio = ref('all')
 
-const chartContainer = ref<HTMLDivElement>();
-const instance = getCurrentInstance()
-const layoutStore = useLayoutStore()
-
-let charts: echarts.ECharts | undefined;
-
-watch([() => layoutStore.windowWidth, () => layoutStore.isCollapse], ([newWidth, newIsCollapse], [oldWidth, oldIsCollapse]) => {
-    if (newWidth !== oldWidth || newIsCollapse !== oldIsCollapse) {
-        resizeHandler()
-    }
-})
-
-const resizeHandler = instance?.appContext.config.globalProperties.$deBounce(() => {
-    charts?.resize({
-        animation: {
-            duration: 200,
-            easing: 'linear'
+const option = ref({
+    tooltip: {
+        trigger: 'item',
+        showDelay: 0,
+        transitionDuration: 0.2,
+        formatter: (params: any) => {
+            return `${params.data.name}&nbsp;&nbsp;&nbsp;&nbsp;${params.data.value}`
         }
-    });
-}, 300);
-
-onMounted(() => {
-    charts = echarts.init(chartContainer.value as HTMLElement)
-    const option = {
-        tooltip: {
-            trigger: 'item'
-        },
-        series: [
-            {
-                name: 'sales-volume',
-                type: 'pie',
-                radius: ['35%', '60%'],
-                avoidLabelOverlap: false,
-                label: {
-                    show: true,
-                    formatter: '{b}',
-                },
-                labelLine: {
-                    show: true,
-                    length: 20,
-                    length2: '10%'
-                },
-                data: [
-                    { value: 1048, name: '数码' },
-                    { value: 735, name: '服饰' },
-                    { value: 580, name: '食品' },
-                    { value: 484, name: '日用品' },
-                    { value: 300, name: '其他' }
-                ]
-            }
-        ]
-    };
-    charts.setOption(option)
+    },
+    series: [
+        {
+            name: 'sales-volume',
+            type: 'pie',
+            radius: ['35%', '60%'],
+            avoidLabelOverlap: false,
+            label: {
+                show: true,
+                formatter: '{b}：{c}',
+            },
+            labelLine: {
+                show: true,
+                length: 20,
+                length2: '10%'
+            },
+            data: [
+                { value: 1048, name: '数码' },
+                { value: 735, name: '服饰' },
+                { value: 580, name: '食品' },
+                { value: 484, name: '日用品' },
+                { value: 300, name: '其他' }
+            ]
+        }
+    ]
 })
 </script>
 
 <style scoped lang="scss">
 .statistics-card {
-    flex: 1;
-    width: 50%;
     color: var(--primary-text-color);
+    width: 50%;
 
     :deep(.el-card__body) {
         padding-top: 0;
@@ -137,7 +117,7 @@ onMounted(() => {
             color: var(--regular-text-color);
         }
 
-        .chart-container {
+        .chart-wrap {
             height: 380px;
             width: 100%;
         }

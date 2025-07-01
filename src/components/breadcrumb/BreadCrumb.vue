@@ -19,7 +19,7 @@ import { Fold, Expand } from '@element-plus/icons-vue'
 import { useLayoutStore } from '@/stores/useLayoutStore'
 
 const route = useRoute()
-const breadcrumbList = computed(() => route.matched)
+const breadcrumbList = computed(() => route.matched.filter(item => item.meta.title !== 'Layout'))
 const layoutStore = useLayoutStore()
 const isCollapse = computed(() => layoutStore.isCollapse)
 

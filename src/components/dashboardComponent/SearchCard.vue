@@ -28,7 +28,9 @@
                             </el-icon>
                         </el-tooltip>
                     </div>
-                    <div class="chart-container" :ref="setChartRefs"></div>
+                    <div class="chart-warp">
+                        <CustomChart :option="option"/>
+                    </div>
                 </div>
                 <div class="search-card-chart-item">
                     <div class="search-card-chart-item-title">
@@ -39,7 +41,9 @@
                             </el-icon>
                         </el-tooltip>
                     </div>
-                    <div class="chart-container" :ref="setChartRefs"></div>
+                    <div class="chart-warp">
+                        <CustomChart :option="option"/>
+                    </div>
                 </div>
             </div>
             <div class="table-container">
@@ -72,12 +76,12 @@
 
 <script setup lang="ts">
 import { MoreFilled, Warning } from '@element-plus/icons-vue';
-import { ref, type ComponentPublicInstance, onMounted, getCurrentInstance, watch, nextTick } from 'vue';
+import { ref, reactive } from 'vue';
 import * as echarts from 'echarts';
 import CustomTable from '@/components/table/CustomTable.vue';
 import type { TableColumnCtx } from 'element-plus'
 import { CaretTop, CaretBottom } from '@element-plus/icons-vue';
-import { useLayoutStore } from '@/stores/useLayoutStore';
+import CustomChart from '@/components/chart/CustomChart.vue';
 
 const data = ref([[9, 800, 200, 640, 560, 880, 40, 960, 560, 12], [120, 1892, 1500, 453, 700, 1100, 1300, 1200, 700, 150]])
 
@@ -122,103 +126,60 @@ const total = ref(100);
 // 当前页码
 const currentPage = ref(1)
 
-const layoutStore = useLayoutStore()
-const instance = getCurrentInstance()
-const chartRefs = ref<HTMLElement[]>([]);
-const myCharts = ref<echarts.ECharts[]>([]);
-
-const setChartRefs = (el: Element | ComponentPublicInstance | null) => {
-    if (el) {
-        chartRefs.value.push(el as HTMLElement);
-    }
-};
-
-watch([() => layoutStore.windowWidth, () => layoutStore.isCollapse], ([newWidth, newIsCollapse], [oldWidth, oldIsCollapse]) => {
-    if (newWidth !== oldWidth || newIsCollapse !== oldIsCollapse) {
-        resizeHandler()
-    }
-})
-
-const resizeHandler = instance?.appContext.config.globalProperties.$deBounce(() => {
-    myCharts.value.forEach(chart => {
-        chart.resize({
-            animation: {
-                duration: 200,
-                easing: 'linear'
-            }
-        });
-    });
-}, 300);
-
-onMounted(() => {
-    chartRefs.value.forEach((el, index) => {
-        const chartInstance = echarts.init(el as HTMLElement);
-        myCharts.value.push(chartInstance)
-        const option = {
-            color: ['#00f2fe'],
-            tooltip: {
-                trigger: 'axis',
+const option = reactive({
+    color: ['#00f2fe'],
+    tooltip: {
+        trigger: 'axis',
+    },
+    xAxis: {
+        type: 'category',
+        data: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'],
+        show: false,
+        boundaryGap: false
+    },
+    yAxis: {
+        type: 'value',
+        show: false
+    },
+    grid: {
+        top: 0,
+        right: 0,
+        bottom: 0,
+        left: 0
+    },
+    series: [
+        {
+            type: 'line',
+            stack: 'Total',
+            smooth: true,
+            lineStyle: {
+                width: 0
             },
-            xAxis: {
-                type: 'category',
-                data: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'],
+            showSymbol: false,
+            label: {
                 show: false,
-                boundaryGap: false
+                position: 'top'
             },
-            yAxis: {
-                type: 'value',
-                show: false
+            areaStyle: {
+                opacity: 0.7,
+                color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                    {
+                        offset: 0,
+                        color: 'rgba(79, 172, 254, 0.8)'
+                    },
+                    {
+                        offset: 1,
+                        color: 'rgba(0, 242, 254, 0.2)'
+                    }
+                ])
             },
-            grid: {
-                top: 0,
-                right: 0,
-                bottom: 0,
-                left: 0
+            emphasis: {
+                focus: 'series'
             },
-            series: [
-                {
-                    type: 'line',
-                    stack: 'Total',
-                    smooth: true,
-                    lineStyle: {
-                        width: 0
-                    },
-                    showSymbol: false,
-                    label: {
-                        show: false,
-                        position: 'top'
-                    },
-                    areaStyle: {
-                        opacity: 0.7,
-                        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                            {
-                                offset: 0,
-                                color: 'rgba(79, 172, 254, 0.8)'
-                            },
-                            {
-                                offset: 1,
-                                color: 'rgba(0, 242, 254, 0.2)'
-                            }
-                        ])
-                    },
-                    emphasis: {
-                        focus: 'series'
-                    },
-                    data: data.value[index]
-                }
-            ]
-        };
-        chartInstance.setOption(option);
-        nextTick(() => {
-            chartInstance.resize({
-                animation: {
-                    duration: 200,
-                    easing: 'linear'
-                }
-            })
-        })
-    });
-});
+            data: data.value[0]
+        }
+    ]
+})
 </script>
 
 <style scoped lang="scss">
@@ -267,6 +228,10 @@ onMounted(() => {
                 .search-card-chart-item-title-icon {
                     cursor: pointer;
                 }
+            }
+
+            .chart-warp {
+                height: 46px;
             }
         }
 

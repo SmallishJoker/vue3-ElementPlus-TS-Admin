@@ -4,7 +4,9 @@
             <el-tabs v-model="activeName" class="demo-tabs">
                 <el-tab-pane label="销售额" name="first" lazy>
                     <div class="tab-card-content">
-                        <Charts :data="data1" />
+                        <div class="chat-wrap">
+                            <CustomChart :option="option" />
+                        </div>
                         <div class="rank-list">
                             <div class="rank-list-title">
                                 <span>门店销售额排名</span>
@@ -25,7 +27,9 @@
                 </el-tab-pane>
                 <el-tab-pane label="访问量" name="second" lazy>
                     <div class="tab-card-content">
-                        <Charts :data="data2" />
+                        <div class="chat-wrap">
+                            <CustomChart :option="option" />
+                        </div>
                         <div class="rank-list">
                             <div class="rank-list-title">
                                 <span>门店访问量排名</span>
@@ -66,14 +70,53 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, reactive } from 'vue';
 import { SortUp } from '@element-plus/icons-vue';
-import Charts from './Charts.vue';
+import * as echarts from 'echarts';
+import CustomChart from '@/components/chart/CustomChart.vue';
 
 const activeName = ref('first')
 const timeRange = ref([])
-const data1 = ref([1200, 2000, 1500, 800, 700, 1100, 1300, 1200, 700, 1500, 800, 700])
-const data2 = ref([1100, 1700, 1540, 1100, 700, 1100, 1300, 1200, 700, 1500, 800, 700])
+
+const option = reactive({
+    xAxis: {
+        type: 'category',
+        data: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'],
+    },
+    tooltip: {
+        trigger: 'axis',
+    },
+    grid: {
+        left: 16,
+        right: 16,
+        bottom: 16,
+        containLabel: true
+    },
+    yAxis: {
+        type: 'value',
+        boundaryGap: false
+    },
+    series: [
+        {
+            type: 'bar',
+            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                {
+                    offset: 0,
+                    color: '#4facfe'
+                },
+                {
+                    offset: 1,
+                    color: '#00f2fe'
+                }
+            ]),
+            data: [
+                1876, 824, 1145, 159, 1637,
+                1972, 1406, 421, 1794, 316,
+                1022, 1830
+            ]
+        }
+    ]
+})
 
 </script>
 
@@ -135,6 +178,11 @@ const data2 = ref([1100, 1700, 1540, 1100, 700, 1100, 1300, 1200, 700, 1500, 800
                 }
             }
         }
+
+        .chat-wrap {
+            width: 100%;
+            height: 360px;
+        }
     }
 
     .time-range {
@@ -181,9 +229,11 @@ const data2 = ref([1100, 1700, 1540, 1100, 700, 1100, 1300, 1200, 700, 1500, 800
         .tab-card-content {
             flex-direction: column;
         }
+
         .chart-container {
             width: 100%;
         }
+
         .time-range {
             display: none;
         }

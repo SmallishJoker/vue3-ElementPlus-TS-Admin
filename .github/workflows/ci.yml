@@ -8,7 +8,7 @@ on:
 
 jobs:
   build-and-deploy:
-    runs-on: ubuntu-22.04  # 使用更新的 Ubuntu 版本
+    runs-on: ubuntu-22.04
     defaults:
       run:
         shell: bash
@@ -18,62 +18,49 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
       with:
-        fetch-depth: 0  # 获取完整历史记录
+        fetch-depth: 0
 
     # 2. 安装指定版本的 pnpm
     - name: Setup PNPM
       uses: pnpm/action-setup@v2
       with:
         version: 8.14.0
-        run_install: false
 
-    # 3. 设置 Node.js
+    # 3. 设置 Node.js 并启用 pnpm 缓存
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
         node-version: 20
         cache: 'pnpm'
 
-    # 4. 配置 pnpm 存储路径
-    - name: Configure pnpm store
-      run: |
-        mkdir -p ~/.pnpm-store
-        ~/.local/share/pnpm/pnpm config set store-dir ~/.pnpm-store
-        echo "PNPM store path: $(~/.local/share/pnpm/pnpm store path)"
-        echo "PNPM version: $(~/.local/share/pnpm/pnpm --version)"
-
-    # 5. 安装依赖（带缓存）
-    - name: Cache pnpm dependencies
-      uses: actions/cache@v3
-      id: pnpm-cache
-      with:
-        path: |
-          ~/.pnpm-store
-          node_modules
-        key: ${{ runner.os }}-pnpm-${{ hashFiles('pnpm-lock.yaml') }}
-
-    # 6. 安装依赖
+    # 4. 安装依赖
     - name: Install dependencies
       run: pnpm install --frozen-lockfile
       env:
         CI: true
 
-    # 7. 后续步骤
+    # 5. 运行代码检查
     - name: Run linting
       run: pnpm run lint
 
+    # 6. 运行测试
     - name: Run tests
       run: pnpm run test
       env:
         CI: true
 
+    # 7. 构建项目
     - name: Build project
       run: pnpm run build
       env:
         NODE_ENV: production
 
+    # 8. 部署到 GitHub Pages
     - name: Deploy to GitHub Pages
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
       uses: peaceiris/actions-gh-pages@v3
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         publish_dir: ./dist
+        publish_branch: gh-pages
+        force_orphan: true
